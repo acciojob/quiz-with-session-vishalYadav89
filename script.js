@@ -4,19 +4,21 @@ const questionsElement = document.getElementById("questions");
 const submitButton = document.getElementById("submit");
 const scoreElement = document.getElementById("score");
 
-// restore progress
+// get saved answers from session storage
 let userAnswers =
   JSON.parse(sessionStorage.getItem("progress")) || [];
 
-// restore score
+// show saved score after refresh
 const savedScore = localStorage.getItem("score");
 
 if (savedScore !== null) {
-  scoreElement.textContent = `Your score is ${savedScore} out of 5.`;
+  scoreElement.textContent =
+    `Your score is ${savedScore} out of 5.`;
 }
 
-// save progress
+// save answers in session storage
 function saveProgress() {
+
   sessionStorage.setItem(
     "progress",
     JSON.stringify(userAnswers)
@@ -38,74 +40,77 @@ function calculateScore() {
   return score;
 }
 
-// render questions
+// Display the quiz questions and choices
 function renderQuestions() {
-
-  questionsElement.innerHTML = "";
 
   for (let i = 0; i < questions.length; i++) {
 
     const question = questions[i];
 
-    // question container div
-    const questionDiv = document.createElement("div");
+    const questionElement =
+      document.createElement("div");
 
-    // question text
-    const questionText = document.createElement("p");
+    const questionText =
+      document.createTextNode(question.question);
 
-    questionText.textContent = question.question;
+    questionElement.appendChild(questionText);
 
-    questionDiv.appendChild(questionText);
-
-    // options
     for (let j = 0; j < question.choices.length; j++) {
 
       const choice = question.choices[j];
 
-      const label = document.createElement("label");
+      const choiceElement =
+        document.createElement("input");
 
-      const radio = document.createElement("input");
+      choiceElement.setAttribute("type", "radio");
 
-      radio.type = "radio";
+      choiceElement.setAttribute(
+        "name",
+        `question-${i}`
+      );
 
-      radio.name = `question-${i}`;
+      choiceElement.setAttribute("value", choice);
 
-      radio.value = choice;
-
-      // restore checked answer
+      // restore checked answers
       if (userAnswers[i] === choice) {
-        radio.checked = true;
+        choiceElement.checked = true;
       }
 
-      // save answer
-      radio.addEventListener("change", function () {
+      // save selected answer
+      choiceElement.addEventListener(
+        "change",
+        function () {
 
-        userAnswers[i] = choice;
+          userAnswers[i] = choice;
 
-        saveProgress();
-      });
+          saveProgress();
+        }
+      );
 
-      label.appendChild(radio);
+      const choiceText =
+        document.createTextNode(choice);
 
-      label.appendChild(document.createTextNode(choice));
+      questionElement.appendChild(choiceElement);
 
-      questionDiv.appendChild(label);
+      questionElement.appendChild(choiceText);
     }
 
-    questionsElement.appendChild(questionDiv);
+    questionsElement.appendChild(questionElement);
   }
 }
 
 // submit button
-submitButton.addEventListener("click", function () {
+submitButton.addEventListener(
+  "click",
+  function () {
 
-  const score = calculateScore();
+    const score = calculateScore();
 
-  scoreElement.textContent =
-    `Your score is ${score} out of 5.`;
+    scoreElement.textContent =
+      `Your score is ${score} out of 5.`;
 
-  localStorage.setItem("score", score);
-});
+    localStorage.setItem("score", score);
+  }
+);
 
-// render all questions
 renderQuestions();
