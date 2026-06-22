@@ -1,14 +1,45 @@
-//your JS code here.
+// your JS code here.
 
 const questionsElement = document.getElementById("questions");
 const submitButton = document.getElementById("submit");
 const scoreElement = document.getElementById("score");
 
-// get saved answers from session storage
+
+const questions = [
+  {
+    question: "1. What is HTML?",
+    choices: ["Language", "Markup", "Database", "OS"],
+    answer: "Markup"
+  },
+  {
+    question: "2. What is CSS used for?",
+    choices: ["Styling", "Logic", "Database", "Server"],
+    answer: "Styling"
+  },
+  {
+    question: "3. JavaScript is?",
+    choices: ["Programming Language", "Browser", "OS", "Database"],
+    answer: "Programming Language"
+  },
+  {
+    question: "4. React is?",
+    choices: ["Library", "Language", "Database", "Compiler"],
+    answer: "Library"
+  },
+  {
+    question: "5. Local storage stores data for?",
+    choices: ["Temporary", "Permanent", "Only session", "None"],
+    answer: "Permanent"
+  }
+];
+
+
+// restore progress
 let userAnswers =
   JSON.parse(sessionStorage.getItem("progress")) || [];
 
-// show saved score after refresh
+
+// restore score after refresh
 const savedScore = localStorage.getItem("score");
 
 if (savedScore !== null) {
@@ -16,7 +47,8 @@ if (savedScore !== null) {
     `Your score is ${savedScore} out of 5.`;
 }
 
-// save answers in session storage
+
+// save answers
 function saveProgress() {
 
   sessionStorage.setItem(
@@ -25,92 +57,100 @@ function saveProgress() {
   );
 }
 
+
 // calculate score
 function calculateScore() {
 
   let score = 0;
 
-  for (let i = 0; i < questions.length; i++) {
+  for(let i=0;i<questions.length;i++){
 
-    if (userAnswers[i] === questions[i].answer) {
+    if(userAnswers[i] === questions[i].answer){
       score++;
     }
+
   }
 
   return score;
 }
 
-// Display the quiz questions and choices
-function renderQuestions() {
 
-  for (let i = 0; i < questions.length; i++) {
 
-    const question = questions[i];
+// render quiz
+function renderQuestions(){
 
-    const questionElement =
-      document.createElement("div");
+  questions.forEach((question,index)=>{
 
-    const questionText =
-      document.createTextNode(question.question);
+    const div = document.createElement("div");
 
-    questionElement.appendChild(questionText);
+    div.innerHTML =
+      `<p>${question.question}</p>`;
 
-    for (let j = 0; j < question.choices.length; j++) {
 
-      const choice = question.choices[j];
+    question.choices.forEach(choice=>{
 
-      const choiceElement =
-        document.createElement("input");
 
-      choiceElement.setAttribute("type", "radio");
+      const input = document.createElement("input");
 
-      choiceElement.setAttribute(
-        "name",
-        `question-${i}`
-      );
+      input.type="radio";
+      input.name=`question-${index}`;
+      input.value=choice;
 
-      choiceElement.setAttribute("value", choice);
 
-      // restore checked answers
-      if (userAnswers[i] === choice) {
-        choiceElement.checked = true;
+      // restore checked option
+      if(userAnswers[index]===choice){
+        input.checked=true;
       }
 
-      // save selected answer
-      choiceElement.addEventListener(
-        "change",
-        function () {
 
-          userAnswers[i] = choice;
+      input.addEventListener("change",()=>{
 
-          saveProgress();
-        }
+        userAnswers[index]=choice;
+
+        saveProgress();
+
+      });
+
+
+      div.appendChild(input);
+
+      div.appendChild(
+        document.createTextNode(choice)
       );
 
-      const choiceText =
-        document.createTextNode(choice);
+      div.appendChild(
+        document.createElement("br")
+      );
 
-      questionElement.appendChild(choiceElement);
+    });
 
-      questionElement.appendChild(choiceText);
-    }
 
-    questionsElement.appendChild(questionElement);
-  }
+    questionsElement.appendChild(div);
+
+  });
+
 }
 
-// submit button
-submitButton.addEventListener(
-  "click",
-  function () {
 
-    const score = calculateScore();
 
-    scoreElement.textContent =
-      `Your score is ${score} out of 5.`;
+// submit quiz
+submitButton.addEventListener("click",()=>{
 
-    localStorage.setItem("score", score);
-  }
-);
+
+  const score = calculateScore();
+
+
+  scoreElement.textContent =
+    `Your score is ${score} out of 5.`;
+
+
+  localStorage.setItem(
+    "score",
+    score
+  );
+
+});
+
+
 
 renderQuestions();
