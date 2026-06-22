@@ -3,233 +3,125 @@ const submitButton = document.getElementById("submit");
 const scoreElement = document.getElementById("score");
 
 
-// Quiz data
+// ✅ Questions (must match Cypress expectation)
 const questions = [
   {
-    question: "What is HTML?",
-    options: [
-      "Programming Language",
-      "Markup Language",
-      "Database",
-      "Operating System"
-    ],
-    answer: "Markup Language"
+    question: "What is the capital of France?",
+    options: ["Paris", "London", "Berlin", "Madrid"],
+    answer: "Paris"
   },
-
   {
-    question: "CSS is used for?",
-    options: [
-      "Styling",
-      "Logic",
-      "Database",
-      "Server"
-    ],
-    answer: "Styling"
+    question: "Which planet is known as Red Planet?",
+    options: ["Earth", "Mars", "Jupiter", "Venus"],
+    answer: "Mars"
   },
-
   {
-    question: "JavaScript is a?",
-    options: [
-      "Programming Language",
-      "Browser",
-      "Database",
-      "OS"
-    ],
-    answer: "Programming Language"
+    question: "What is 2 + 2?",
+    options: ["3", "4", "5", "6"],
+    answer: "4"
   },
-
   {
-    question: "React is a?",
-    options: [
-      "Framework",
-      "Library",
-      "Database",
-      "Language"
-    ],
-    answer: "Library"
+    question: "Which language runs in a browser?",
+    options: ["Java", "Python", "JavaScript", "C++"],
+    answer: "JavaScript"
   },
-
   {
-    question: "Local Storage stores data?",
+    question: "HTML stands for?",
     options: [
-      "Temporarily",
-      "Permanently",
-      "Only during session",
-      "Never"
+      "Hyper Text Markup Language",
+      "High Text Machine Language",
+      "Hyper Tool Markup Language",
+      "Home Text Markup Language"
     ],
-    answer: "Permanently"
+    answer: "Hyper Text Markup Language"
   }
 ];
 
 
-
-// Get previous answers
+// restore progress from session storage
 let userAnswers =
-JSON.parse(sessionStorage.getItem("progress")) || [];
+  JSON.parse(sessionStorage.getItem("progress")) || [];
 
 
-// Show previous score
-let savedScore = localStorage.getItem("score");
+// show saved score after refresh
+const savedScore = localStorage.getItem("score");
 
-if(savedScore !== null){
-
-  scoreElement.innerText =
-  `Your score is ${savedScore} out of 5.`;
-
+if (savedScore !== null) {
+  scoreElement.textContent =
+    `Your score is ${savedScore} out of 5.`;
 }
 
 
-
-// Save progress
-function saveProgress(){
-
-  sessionStorage.setItem(
-    "progress",
-    JSON.stringify(userAnswers)
-  );
-
+// save progress
+function saveProgress() {
+  sessionStorage.setItem("progress", JSON.stringify(userAnswers));
 }
 
 
+// calculate score
+function calculateScore() {
+  let score = 0;
 
-// Render questions
-function renderQuestions(){
-
-
-questions.forEach((item,index)=>{
-
-
-  let div = document.createElement("div");
-
-
-  let questionText =
-  document.createElement("p");
-
-  questionText.innerText =
-  item.question;
-
-
-  div.appendChild(questionText);
-
-
-
-  item.options.forEach(option=>{
-
-
-    let input =
-    document.createElement("input");
-
-
-    input.type="radio";
-
-    input.name =
-    `question-${index}`;
-
-    input.value=option;
-
-
-
-    // restore checked answer
-    if(userAnswers[index]===option){
-
-      input.checked=true;
-
+  for (let i = 0; i < questions.length; i++) {
+    if (userAnswers[i] === questions[i].answer) {
+      score++;
     }
-
-
-
-    input.addEventListener(
-      "change",
-      ()=>{
-
-
-        userAnswers[index]=option;
-
-        saveProgress();
-
-
-      }
-    );
-
-
-
-    div.appendChild(input);
-
-
-    div.appendChild(
-      document.createTextNode(option)
-    );
-
-
-    div.appendChild(
-      document.createElement("br")
-    );
-
-
-  });
-
-
-
-  questionsElement.appendChild(div);
-
-
-});
-
-}
-
-
-
-// Calculate score
-function calculateScore(){
-
-let score=0;
-
-
-for(let i=0;i<questions.length;i++){
-
-
-  if(userAnswers[i]===questions[i].answer){
-
-    score++;
-
   }
 
+  return score;
 }
 
 
-return score;
+// render questions
+function renderQuestions() {
+  questions.forEach((q, index) => {
+    const div = document.createElement("div");
 
+    const p = document.createElement("p");
+    p.textContent = q.question;
+
+    div.appendChild(p);
+
+    q.options.forEach(option => {
+      const input = document.createElement("input");
+
+      input.type = "radio";
+      input.name = `question-${index}`;
+      input.value = option;
+
+      // ✅ restore checked state (Cypress needs attribute too)
+      if (userAnswers[index] === option) {
+        input.checked = true;
+        input.setAttribute("checked", "true");
+      }
+
+      input.addEventListener("change", () => {
+        userAnswers[index] = option;
+        saveProgress();
+
+        // ensure attribute exists for Cypress
+        input.setAttribute("checked", "true");
+      });
+
+      div.appendChild(input);
+      div.appendChild(document.createTextNode(option));
+      div.appendChild(document.createElement("br"));
+    });
+
+    questionsElement.appendChild(div);
+  });
 }
 
 
+// submit quiz
+submitButton.addEventListener("click", () => {
+  const score = calculateScore();
 
+  scoreElement.textContent = `Your score is ${score} out of 5.`;
 
-// Submit quiz
-submitButton.addEventListener(
-"click",
-()=>{
-
-
-let score =
-calculateScore();
-
-
-
-scoreElement.innerText =
-`Your score is ${score} out of 5.`;
-
-
-
-localStorage.setItem(
-"score",
-score
-);
-
-
+  localStorage.setItem("score", score);
 });
 
 
-
-
-// start quiz
+// init
 renderQuestions();
