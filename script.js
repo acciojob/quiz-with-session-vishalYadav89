@@ -3,7 +3,6 @@ const submitButton = document.getElementById("submit");
 const scoreElement = document.getElementById("score");
 
 
-// ✅ Questions (must match Cypress expectation)
 const questions = [
   {
     question: "What is the capital of France?",
@@ -38,90 +37,151 @@ const questions = [
 ];
 
 
-// restore progress from session storage
+
+// Load previous progress
 let userAnswers =
   JSON.parse(sessionStorage.getItem("progress")) || [];
 
 
-// show saved score after refresh
-const savedScore = localStorage.getItem("score");
 
-if (savedScore !== null) {
+// Load previous score
+let oldScore = localStorage.getItem("score");
+
+if (oldScore !== null) {
   scoreElement.textContent =
-    `Your score is ${savedScore} out of 5.`;
+    `Your score is ${oldScore} out of 5.`;
 }
 
 
-// save progress
+
+// Save answers
 function saveProgress() {
-  sessionStorage.setItem("progress", JSON.stringify(userAnswers));
+
+  sessionStorage.setItem(
+    "progress",
+    JSON.stringify(userAnswers)
+  );
+
 }
 
 
-// calculate score
-function calculateScore() {
-  let score = 0;
 
-  for (let i = 0; i < questions.length; i++) {
-    if (userAnswers[i] === questions[i].answer) {
-      score++;
-    }
-  }
+// Display questions
+function displayQuestions() {
 
-  return score;
-}
+  questionsElement.innerHTML = "";
 
 
-// render questions
-function renderQuestions() {
   questions.forEach((q, index) => {
+
     const div = document.createElement("div");
 
-    const p = document.createElement("p");
-    p.textContent = q.question;
 
-    div.appendChild(p);
+    const title = document.createElement("p");
+
+    title.textContent =
+      `${index + 1}. ${q.question}`;
+
+
+    div.appendChild(title);
+
+
 
     q.options.forEach(option => {
+
       const input = document.createElement("input");
 
       input.type = "radio";
-      input.name = `question-${index}`;
+      input.name = "question" + index;
       input.value = option;
 
-      // ✅ restore checked state (Cypress needs attribute too)
+
       if (userAnswers[index] === option) {
+
         input.checked = true;
-        input.setAttribute("checked", "true");
+
       }
 
-      input.addEventListener("change", () => {
-        userAnswers[index] = option;
-        saveProgress();
 
-        // ensure attribute exists for Cypress
-        input.setAttribute("checked", "true");
-      });
+
+      input.addEventListener(
+        "change",
+        function() {
+
+          userAnswers[index] = option;
+
+          saveProgress();
+
+        }
+      );
+
+
 
       div.appendChild(input);
-      div.appendChild(document.createTextNode(option));
-      div.appendChild(document.createElement("br"));
+
+      div.appendChild(
+        document.createTextNode(option)
+      );
+
+      div.appendChild(
+        document.createElement("br")
+      );
+
     });
 
+
     questionsElement.appendChild(div);
+
   });
+
 }
 
 
-// submit quiz
-submitButton.addEventListener("click", () => {
-  const score = calculateScore();
 
-  scoreElement.textContent = `Your score is ${score} out of 5.`;
+// Calculate score
+function calculateScore() {
 
-  localStorage.setItem("score", score);
-});
+  let score = 0;
 
 
-// init
-renderQuestions();
+  questions.forEach((q, index) => {
+
+    if (userAnswers[index] === q.answer) {
+
+      score++;
+
+    }
+
+  });
+
+
+  return score;
+
+}
+
+
+
+// Submit
+submitButton.addEventListener(
+  "click",
+  function() {
+
+    const score = calculateScore();
+
+
+    scoreElement.textContent =
+      `Your score is ${score} out of 5.`;
+
+
+    localStorage.setItem(
+      "score",
+      score
+    );
+
+  }
+);
+
+
+
+// Initial load
+displayQuestions();
